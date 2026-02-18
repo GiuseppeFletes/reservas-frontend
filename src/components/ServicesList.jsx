@@ -1,7 +1,7 @@
 function ServicesList({ services }) {
   return (
     <>
-      <h2>Servicios Test Error</h2>
+      <h2>Servicios disponibles</h2>
 
       <ul>
         {services.map((service) => (
