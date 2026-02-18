@@ -1,0 +1,198 @@
+import { useState, useEffect } from "react";
+import axios from "axios";
+
+function App() {
+  const [token, setToken] = useState(localStorage.getItem("token"));
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [services, setServices] = useState([]);
+  const [selectedService, setSelectedService] = useState("");
+  const [date, setDate] = useState("");
+  const [time, setTime] = useState("");
+  const [message, setMessage] = useState("");
+  const [reservations, setReservations] = useState([]);
+
+  useEffect(() => {
+    if (token) {
+      fetchServices(token);
+      fetchReservations(token);
+    }
+  }, [token]);
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+
+    try {
+      const response = await axios.post(
+        "http://127.0.0.1:8000/api/login",
+        { email, password }
+      );
+
+      const newToken = response.data.token;
+      localStorage.setItem("token", newToken);
+      setToken(newToken);
+    } catch (error) {
+      alert("Credenciales incorrectas");
+    }
+  };
+
+  const fetchServices = async (authToken) => {
+    try {
+      const response = await axios.get(
+        "http://127.0.0.1:8000/api/services",
+        {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+        }
+      );
+
+      setServices(response.data);
+    } catch (error) {
+      console.error("Error al obtener servicios");
+    }
+  };
+
+  const fetchReservations = async (authToken) => {
+    try{
+      const response = await axios.get(
+        "http://127.0.0.1:8000/api/reservations",
+        {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+        }
+      );
+      setReservations(response.data);
+    }catch(error){
+      console.log("Error al obtener reservas");
+    }
+  };
+
+  const handleReservation = async () => {
+    try {
+      const response = await axios.post(
+        "http://127.0.0.1:8000/api/reservations",
+        {
+          service_id: selectedService,
+          date: date,
+          time: time,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      setMessage("Reserva creada correctamente");
+      fetchReservations(token);
+    } catch (error) {
+      if (error.response?.status === 409) {
+        setMessage("Este horario ya está reservado");
+      } else {
+        setMessage("Error al crear reserva");
+      }
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    setToken(null);
+    setServices([]);
+  };
+
+  if (!token) {
+    return (
+      <div style={{ padding: "20px" }}>
+        <h1>Login</h1>
+
+        <form onSubmit={handleLogin}>
+          <input
+            type="email"
+            placeholder="Correo"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          <br /><br />
+          <input
+            type="password"
+            placeholder="Contraseña"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          <br /><br />
+          <button type="submit">Iniciar sesión</button>
+        </form>
+
+        
+
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ padding: "20px" }}>
+      <h1>Dashboard</h1>
+      <button onClick={handleLogout}>Cerrar sesión</button>
+
+      <h2>Servicios disponibles</h2>
+
+      <ul>
+        {services.map((service) => (
+          <li key={service.id}>
+            {service.name} - ${service.price}
+          </li>
+        ))}
+      </ul>
+
+      <h2>Crear Reserva</h2>
+
+      <h2>Mis Reservas</h2>
+
+          <ul>
+            {reservations.map((reservation) => (
+              <li key={reservation.id}>
+                {reservation.service?.name} | {reservation.date} | {reservation.time}
+              </li>
+            ))}
+          </ul>
+
+      <select
+        value={selectedService}
+        onChange={(e) => setSelectedService(e.target.value)}
+      >
+        <option value="">Selecciona un servicio</option>
+        {services.map((service) => (
+          <option key={service.id} value={service.id}>
+            {service.name}
+          </option>
+        ))}
+      </select>
+
+      <br /><br />
+
+      <input
+        type="date"
+        value={date}
+        onChange={(e) => setDate(e.target.value)}
+      />
+
+      <br /><br />
+
+      <input
+        type="time"
+        value={time}
+        onChange={(e) => setTime(e.target.value)}
+      />
+
+      <br /><br />
+
+      <button onClick={handleReservation}>Reservar</button>
+
+      <p>{message}</p>
+    </div>
+  );
+}
+
+export default App;
