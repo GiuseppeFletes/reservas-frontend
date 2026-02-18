@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import ReservationsList from "./components/ReservationsList";
 
 function App() {
   const [token, setToken] = useState(localStorage.getItem("token"));
@@ -148,15 +149,7 @@ function App() {
 
       <h2>Crear Reserva</h2>
 
-      <h2>Mis Reservas</h2>
-
-          <ul>
-            {reservations.map((reservation) => (
-              <li key={reservation.id}>
-                {reservation.service?.name} | {reservation.date} | {reservation.time}
-              </li>
-            ))}
-          </ul>
+      <ReservationsList reservations={reservations} />
 
       <select
         value={selectedService}
