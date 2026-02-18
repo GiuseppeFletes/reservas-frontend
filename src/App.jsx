@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import ReservationsList from "./components/ReservationsList";
 import ReservationForm from "./components/ReservationsForm";
+import ServicesList from "./components/ServicesList";
 
 function App() {
   const [token, setToken] = useState(localStorage.getItem("token"));
@@ -138,16 +139,8 @@ function App() {
       <h1>Dashboard</h1>
       <button onClick={handleLogout}>Cerrar sesión</button>
 
-      <h2>Servicios disponibles</h2>
-
-      <ul>
-        {services.map((service) => (
-          <li key={service.id}>
-            {service.name} - ${service.price}
-          </li>
-        ))}
-      </ul>
-
+      
+      <ServicesList services={services} />
       <ReservationsList reservations={reservations} />
       <ReservationForm
         services={services}
